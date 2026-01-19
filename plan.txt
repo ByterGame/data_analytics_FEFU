@@ -1,0 +1,141 @@
+Пусть будет аналитика некоторого интернет магазина игра вроде steam
+
+Очевидно должна быть таблица юзеров
+пусть у юзеров помимо личных данных + библиотеки игр + какой-то статы активности (общей и по каждой игре), будет еще поле подписки (типа как игры в apple arcade)
+
+Понятно, что также должна быть какая-то таблица игр, которые продаются в магазине, статистика по количеству покупок, по времени игроков, проведенных в игре,
+жанр игры, платная/бесплатная/по подписке.
+
+Также стоит добавить таблицу с разработчиками, хз пока что какая о них информация должна быть. Наверно выпущенные игры, общий зароботок из которого вычисляется 
+комиссия на каждую продажу, какие-то юр.данные, название студии и т.п.
+
+Рекламы в сервисе по продаже чего-то делать пожалуй не стоит, странно как по мне, хотя можно к определенным играм выставлять платные коэффициенты на продвижение,
+я правда не уверен, насколько это нужно будет в визуализации. Получится какая-то сложная метрика типа "Как частота показов влияет на количество покупок". 
+Хотя это может быть полезно потенциальным покупателся такого платного продвижения.
+
+Кстати, было бы неплохо, чтобы у юзера в личной инфе была страна, чтобы можно было понять, какие игры и где популярны, это явно полязно для персонализации рекомендаций.
+
+Итого на данный момент:
+
+1) таблица юзеров со следующими полями:
+- Логин
+- Страна и регион
+- Хэш пароля (хотя не думаю, что эти данные полезны для аналитики, может этого и не будет)
+- Библиотека игр (тут должен быть список внешних ключей на таблицу 2 или будет создана отдельная таблица для связи many-to-many)
+- Баланс/сумма трат (Полезная метрика, для анализа того, откуда поступает больше денег)
+- топ 5 игр по проведенному времени (для анализа популярности определенных жанров и стилей в разных странах)
+- наличие подписки
+- ну и можно было бы добавить всякую мелочь типа последее время в сети, но сейчас я не думаю, что это так важно
+
+2) Общая библиотека игр
+- название
+- жанр
+- платная/бесплатная/подписка
+- общее время игроков в игре
+- количество покупок (если не подписка, если подписка, то пока не придумал)
+- внешний ключ на разработчика 
+- дата выхода
+- ну и опять же какая-нибудь мелкая информация, которой скорее всего не будет
+
+3) Разработчики 
+- название студии
+- выпущенные игры ? сомневаюсь, что лучше внешний ключ в таблице 2 или список ключей на таблицу 2 тут, наверно удобнее просто в таблице 2 сортировать по имени 
+разрабочика данные, так что этого поля скорее всего не будет
+- Общий заработок (ну и вот тут как раз наверно проще, чтобы именно игра на разраба ссылалась, чтобы при покупке быстренько его найти, все начислить, проверить)
+- какая-нибудь юр инфа, хотя вряд ли она должна храниться в бд магазина
+
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    country_code CHAR(2),  -- 'RU', 'US', etc
+    region VARCHAR(50),     -- 'Москва', 'California'
+    registration_date TIMESTAMP DEFAULT NOW(),
+    last_login TIMESTAMP,
+    total_spent DECIMAL(10,2) DEFAULT 0.00,
+    subscription_type VARCHAR(20),  -- 'active', 'inactive'
+    subscription_start DATE,
+    subscription_end DATE
+);
+
+CREATE TABLE games (
+    game_id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    developer_id INTEGER REFERENCES developers(developer_id),
+    release_date DATE,
+    base_price DECIMAL(10,2),  -- 0.00 для бесплатных
+    current_price DECIMAL(10,2), -- цена со скидкой
+    monetization_type VARCHAR(20),  -- 'free', 'paid', 'subscription'
+    genre_main VARCHAR(50),  -- 'RPG', 'Shooter', 'Strategy'
+    genre_tags TEXT[],       -- массив тегов: {'action', 'multiplayer', 'coop'}
+    age_rating VARCHAR(5),   -- '18+', '12+'
+    total_purchases INTEGER DEFAULT 0, -- Кэшированный счетчик
+    included_in_subscription BOOLEAN DEFAULT FALSE -- Связь с подпиской
+    is_active BOOLEAN DEFAULT TRUE  -- не удаляем игры, а помечаем неактивными
+);
+
+CREATE TABLE developers (
+    developer_id SERIAL PRIMARY KEY,
+    studio_name VARCHAR(100) NOT NULL,
+    country_code CHAR(2),
+    foundation_year INTEGER,
+    total_revenue DECIMAL(15,2) DEFAULT 0.00,  -- вычисляемое поле, обновляем триггером
+    tax_id VARCHAR(50),  -- юр. информация, никуда не ведет
+    contact_email VARCHAR(100)
+);
+
+CREATE TABLE user_library (
+    user_game_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    game_id INTEGER REFERENCES games(game_id),
+    total_playtime_hours DECIMAL(10,2) DEFAULT 0.00
+    purchase_date TIMESTAMP DEFAULT NOW(),
+    purchase_price DECIMAL(10,2),  -- цена в момент покупки (для аналитики)
+    purchase_type VARCHAR(20),  -- 'direct', 'subscription', 'bundle', 'gift'
+);
+
+CREATE TABLE play_sessions (
+    session_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    game_id INTEGER REFERENCES games(game_id),
+    session_start TIMESTAMP,
+    session_end TIMESTAMP,
+    play_duration INTEGER,  -- в секундах
+    achievements_gained INTEGER DEFAULT 0,
+    platform VARCHAR(20)  -- 'windows', 'mac', 'linux', 'mobile'
+);
+
+CREATE TABLE transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    game_id INTEGER REFERENCES games(game_id),  -- NULL (или какое-нибудь спец значение) если покупка подписки
+    transaction_date TIMESTAMP DEFAULT NOW(),
+    amount DECIMAL(10,2),
+    currency CHAR(3) DEFAULT 'USD',
+    transaction_type VARCHAR(30),  -- 'game_purchase', 'subscription', 'refund'
+    payment_method VARCHAR(30),   -- 'credit_card', 'paypal', 'google_pay'
+    developer_revenue DECIMAL(10,2),  -- 70% от суммы (если 30% комиссия)
+    platform_commission DECIMAL(10,2) -- 30% от суммы
+);
+
+CREATE TABLE subscriptions ( # Предполагается, что подписка единая, поэтому тут нет полей вроде типа подписки
+    subscription_id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(user_id),
+    start_date DATE,
+    end_date DATE,
+    auto_renew BOOLEAN DEFAULT TRUE,
+    monthly_price DECIMAL(10,2)
+);
+
+ну таблица связанная с продвижением, я не уверен, что она останется тут до конца
+CREATE TABLE promotions (
+    promotion_id SERIAL PRIMARY KEY,
+    game_id INTEGER REFERENCES games(game_id),
+    promotion_type VARCHAR(30),  -- 'featured', 'banner', 'recommendation'
+    start_date DATE,
+    end_date DATE,
+    budget DECIMAL(10,2),  -- бюджет на продвижение
+    impressions INTEGER DEFAULT 0,  -- сколько раз показали
+    clicks INTEGER DEFAULT 0,       -- сколько раз кликнули
+    conversions INTEGER DEFAULT 0   -- сколько покупок
+);
