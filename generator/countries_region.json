@@ -1,0 +1,203 @@
+{
+  "countries": [
+    {
+      "code": "RU",
+      "name": "Russia",
+      "regions": [
+        "Moscow", "Saint Petersburg", "Moscow Oblast", "Krasnodar Krai", 
+        "Sverdlovsk Oblast", "Republic of Tatarstan", "Chelyabinsk Oblast",
+        "Nizhny Novgorod Oblast", "Samara Oblast", "Rostov Oblast",
+        "Bashkortostan Republic", "Krasnoyarsk Krai", "Perm Krai",
+        "Voronezh Oblast", "Volgograd Oblast"
+      ]
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "regions": [
+        "California", "Texas", "Florida", "New York", "Pennsylvania",
+        "Illinois", "Ohio", "Georgia", "North Carolina", "Michigan",
+        "New Jersey", "Virginia", "Washington", "Arizona", "Massachusetts"
+      ]
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "regions": [
+        "Berlin", "Bavaria", "Hamburg", "North Rhine-Westphalia",
+        "Baden-Württemberg", "Lower Saxony", "Hesse", "Saxony",
+        "Rhineland-Palatinate", "Brandenburg", "Thuringia",
+        "Schleswig-Holstein", "Saxony-Anhalt", "Mecklenburg-Vorpommern",
+        "Saarland", "Bremen"
+      ]
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "regions": [
+        "Île-de-France", "Auvergne-Rhône-Alpes", "Nouvelle-Aquitaine",
+        "Occitanie", "Hauts-de-France", "Grand Est", "Pays de la Loire",
+        "Brittany", "Normandy", "Centre-Val de Loire", "Bourgogne-Franche-Comté",
+        "Provence-Alpes-Côte d'Azur", "Corsica"
+      ]
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "regions": [
+        "Tokyo", "Osaka", "Aichi", "Kanagawa", "Saitama", "Chiba",
+        "Hyogo", "Hokkaido", "Fukuoka", "Shizuoka", "Kyoto",
+        "Hiroshima", "Miyagi", "Niigata", "Nagano"
+      ]
+    },
+    {
+      "code": "CN",
+      "name": "China",
+      "regions": [
+        "Guangdong", "Jiangsu", "Shandong", "Zhejiang", "Henan",
+        "Sichuan", "Hebei", "Hunan", "Anhui", "Hubei", "Fujian",
+        "Shaanxi", "Shanghai", "Beijing", "Chongqing"
+      ]
+    },
+    {
+      "code": "KR",
+      "name": "South Korea",
+      "regions": [
+        "Seoul", "Busan", "Incheon", "Daegu", "Daejeon", "Gwangju",
+        "Ulsan", "Gyeonggi", "Gangwon", "Chungcheong", "Jeolla",
+        "Gyeongsang", "Jeju"
+      ]
+    },
+    {
+      "code": "BR",
+      "name": "Brazil",
+      "regions": [
+        "São Paulo", "Rio de Janeiro", "Minas Gerais", "Bahia",
+        "Rio Grande do Sul", "Paraná", "Pernambuco", "Ceará",
+        "Pará", "Santa Catarina", "Goiás", "Maranhão", "Amazonas"
+      ]
+    },
+    {
+      "code": "IN",
+      "name": "India",
+      "regions": [
+        "Maharashtra", "Delhi", "Karnataka", "Tamil Nadu", "Uttar Pradesh",
+        "Gujarat", "Rajasthan", "West Bengal", "Andhra Pradesh", "Telangana",
+        "Kerala", "Madhya Pradesh", "Punjab", "Haryana", "Odisha"
+      ]
+    },
+    {
+      "code": "CA",
+      "name": "Canada",
+      "regions": [
+        "Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba",
+        "Saskatchewan", "Nova Scotia", "New Brunswick", "Newfoundland and Labrador",
+        "Prince Edward Island", "Northwest Territories", "Yukon", "Nunavut"
+      ]
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "regions": [
+        "New South Wales", "Victoria", "Queensland", "Western Australia",
+        "South Australia", "Tasmania", "Australian Capital Territory",
+        "Northern Territory"
+      ]
+    },
+    {
+      "code": "GB",
+      "name": "United Kingdom",
+      "regions": [
+        "England", "Scotland", "Wales", "Northern Ireland",
+        "Greater London", "West Midlands", "Greater Manchester",
+        "West Yorkshire", "Merseyside", "South Yorkshire", "Tyne and Wear"
+      ]
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "regions": [
+        "Lombardy", "Lazio", "Campania", "Sicily", "Veneto",
+        "Emilia-Romagna", "Piedmont", "Apulia", "Tuscany",
+        "Calabria", "Sardinia", "Liguria", "Marche", "Abruzzo"
+      ]
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "regions": [
+        "Madrid", "Catalonia", "Andalusia", "Valencia", "Galicia",
+        "Castile and León", "Basque Country", "Castilla-La Mancha",
+        "Canary Islands", "Aragon", "Extremadura", "Balearic Islands",
+        "Asturias", "Navarre", "Murcia"
+      ]
+    },
+    {
+      "code": "TR",
+      "name": "Turkey",
+      "regions": [
+        "Istanbul", "Ankara", "Izmir", "Bursa", "Antalya",
+        "Konya", "Adana", "Mersin", "Gaziantep", "Kayseri",
+        "Diyarbakır", "Samsun", "Malatya", "Erzurum", "Trabzon"
+      ]
+    },
+    {
+      "code": "PL",
+      "name": "Poland",
+      "regions": [
+        "Masovian", "Silesian", "Greater Poland", "Lesser Poland",
+        "Lower Silesian", "Łódź", "Pomeranian", "Lublin",
+        "Podkarpackie", "Kuyavian-Pomeranian", "West Pomeranian",
+        "Warmian-Masurian", "Świętokrzyskie", "Podlaskie", "Opole"
+      ]
+    },
+    {
+      "code": "UA",
+      "name": "Ukraine",
+      "regions": [
+        "Kyiv", "Kharkiv", "Odesa", "Dnipro", "Donetsk",
+        "Zaporizhzhia", "Lviv", "Kryvyi Rih", "Mykolaiv",
+        "Mariupol", "Luhansk", "Vinnytsia", "Simferopol",
+        "Kherson", "Poltava"
+      ]
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "regions": [
+        "North Holland", "South Holland", "North Brabant", "Gelderland",
+        "Utrecht", "Friesland", "Overijssel", "Groningen",
+        "Drenthe", "Limburg", "Flevoland", "Zeeland"
+      ]
+    },
+    {
+      "code": "SE",
+      "name": "Sweden",
+      "regions": [
+        "Stockholm", "Västra Götaland", "Skåne", "Uppsala",
+        "Östergötland", "Jönköping", "Västmanland", "Dalarna",
+        "Värmland", "Halland", "Gävleborg", "Norrbotten",
+        "Västernorrland", "Kalmar", "Gotland"
+      ]
+    },
+    {
+      "code": "NO",
+      "name": "Norway",
+      "regions": [
+        "Oslo", "Viken", "Innlandet", "Vestfold og Telemark",
+        "Agder", "Rogaland", "Vestland", "Møre og Romsdal",
+        "Trøndelag", "Nordland", "Troms og Finnmark"
+      ]
+    },
+    {
+      "code": "FI",
+      "name": "Finland",
+      "regions": [
+        "Uusimaa", "Southwest Finland", "Pirkanmaa", "North Ostrobothnia",
+        "Central Finland", "Lapland", "Päijät-Häme", "Kymenlaakso",
+        "South Karelia", "Kanta-Häme", "South Ostrobothnia", "Central Ostrobothnia",
+        "North Savo", "South Savo", "North Karelia"
+      ]
+    }
+  ]
+}

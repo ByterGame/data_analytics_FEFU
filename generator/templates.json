@@ -1,0 +1,47 @@
+{
+  "game_titles": [
+    "{adjective} {noun}",
+    "The {adjective} {noun}",
+    "{noun} {roman_numeral}",
+    "{noun}: {subtitle}",
+    "{mythical} {noun}",
+    "{color} {noun}",
+    "{prefix} {noun}",
+    "{adjective} {mythical}",
+    "{verb} {noun}",
+    "{prefix} {mythical}",
+    "{mythical}'s {noun}",
+    "{adjective} {location}",
+    "Return to {location}",
+    "{location} {noun}",
+    "Chronicles of the {adjective} {noun}",
+    "Legacy of the {mythical}",
+    "War of the {plural_noun}",
+    "Rise of the {mythical}",
+    "Fall of the {mythical}",
+    "Project {noun}",
+    "Operation {noun}",
+    "Code {noun}",
+    "System {noun}",
+    "Protocol {noun}",
+    "The Last {noun}",
+    "The First {noun}",
+    "The Lost {noun}",
+    "The Hidden {noun}",
+    "The Secret {noun}",
+    "The Forbidden {noun}"
+  ],
+  
+  "studio_names": [
+    "{word1} {word2} {suffix}",
+    "{word1} {suffix}",
+    "{word1} & {word2} {suffix}",
+    "Studio {word1}",
+    "{word1}Ware",
+    "{word1}Labs",
+    "Team {word1}",
+    "{word1} Development",
+    "{word1} Creations",
+    "{word1} Works"
+  ]
+}

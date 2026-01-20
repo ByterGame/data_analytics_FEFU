@@ -1,0 +1,123 @@
+{
+  "adjectives": [
+    "Shadow", "Dark", "Light", "Blood", "Soul", "Spirit", "Iron", "Steel",
+    "Golden", "Silver", "Crystal", "Mystic", "Ancient", "Forgotten", "Lost",
+    "Hidden", "Secret", "Sacred", "Cursed", "Divine", "Infernal", "Celestial",
+    "Abyssal", "Primal", "Frozen", "Burning", "Electric", "Atomic", "Galactic",
+    "Digital", "Virtual", "Cyber", "Neo", "Quantum", "Retro", "Classic",
+    "Modern", "Future", "Brave", "Cunning", "Swift", "Mighty", "Powerful",
+    "Magical", "Technological", "Mysterious", "Dangerous", "Forbidden",
+    "Colorful", "Monochrome", "Bright", "Shadowy", "Luminous", "Radiant",
+    "Gloomy", "Cheerful", "Melancholic", "Epic", "Grand", "Majestic",
+    "Humble", "Simple", "Complex", "Eternal", "Infinite", "Final", "Last",
+    "First", "New", "Old", "Wild", "Savage", "Silent", "Loud", "Empty",
+    "Full", "Deep", "Shallow", "Hot", "Cold", "Wet", "Dry", "Fast", "Slow",
+    "Heavy", "Light", "Sharp", "Dull", "Sweet", "Bitter", "Soft", "Hard",
+    "Young", "Old", "Dead", "Alive", "Real", "Fake", "True", "False",
+    "Pure", "Corrupt", "Holy", "Unholy", "Blessed", "Damned", "Free", "Bound"
+  ],
+  
+  "nouns": [
+    "Realm", "Legacy", "Kingdom", "Empire", "Dynasty", "Chronicle",
+    "Saga", "Odyssey", "Journey", "Quest", "Crusade", "War", "Battle",
+    "Conflict", "Struggle", "Rebellion", "Revolution", "Awakening",
+    "Rebirth", "Redemption", "Salvation", "Damnation", "Prophecy",
+    "Destiny", "Fate", "Fortune", "Doom", "Hope", "Dream", "Nightmare",
+    "Legend", "Myth", "Truth", "Lie", "Reality", "Illusion", "Dimension",
+    "Universe", "World", "Planet", "Star", "Moon", "Sun", "Galaxy",
+    "Nebula", "Code", "Protocol", "System", "Matrix", "Grid", "Network",
+    "Dragon", "Phoenix", "Griffin", "Unicorn", "Kraken", "Leviathan",
+    "Behemoth", "Titan", "Giant", "Colossus", "Wraith", "Specter",
+    "Ghost", "Demon", "Angel", "Deity", "God", "Goddess", "Wizard",
+    "Sorcerer", "Warlock", "Necromancer", "Paladin", "Valkyrie",
+    "Samurai", "Ninja", "Knight", "Barbarian", "Viking", "Goblin",
+    "Orc", "Elf", "Dwarf", "Halfling", "Troll", "Ogre", "Zombie",
+    "Vampire", "Forest", "Mountain", "River", "Ocean", "Sea", "Sky",
+    "Fire", "Water", "Earth", "Air", "Storm", "Thunder", "Lightning",
+    "Rain", "Snow", "Ice", "Flame", "Shadow", "Light", "Darkness",
+    "Dawn", "Dusk", "Night", "Day", "City", "Town", "Village", "Castle",
+    "Fortress", "Temple", "Shrine", "Altar", "Heart", "Soul", "Mind",
+    "Body", "Spirit", "Essence", "Core", "Center", "Edge", "Border",
+    "Frontier", "Horizon", "Zenith", "Nadir", "Apex", "Summit", "Echo",
+    "Whisper", "Scream", "Silence", "Sound", "Music", "Rhythm", "Harmony"
+  ],
+  
+  "mythical_creatures": [
+    "Dragon", "Phoenix", "Griffin", "Unicorn", "Kraken", "Leviathan",
+    "Behemoth", "Titan", "Giant", "Colossus", "Wraith", "Specter",
+    "Ghost", "Spirit", "Demon", "Angel", "Deity", "God", "Goddess",
+    "Wizard", "Sorcerer", "Warlock", "Necromancer", "Paladin",
+    "Valkyrie", "Samurai", "Ninja", "Knight", "Barbarian", "Viking",
+    "Cyborg", "Android", "Robot", "AI", "Drone", "Hacker", "Cybernetic"
+  ],
+  
+  "verbs": [
+    "Rising", "Falling", "Awakening", "Sleeping", "Fighting", "Running",
+    "Jumping", "Flying", "Swimming", "Diving", "Exploring", "Discovering",
+    "Creating", "Destroying", "Building", "Breaking", "Healing", "Hurting",
+    "Loving", "Hating", "Remembering", "Forgetting", "Finding", "Losing",
+    "Winning", "Losing", "Living", "Dying", "Beginning", "Ending",
+    "Changing", "Staying", "Moving", "Stopping", "Growing", "Shrinking",
+    "Learning", "Teaching", "Giving", "Taking", "Saving", "Killing"
+  ],
+  
+  "prefixes": [
+    "Shadow", "Crystal", "Epic", "Mystic", "Ancient", "Forgotten",
+    "Dark", "Light", "Blood", "Soul", "Spirit", "Iron", "Steel",
+    "Golden", "Silver", "Dragon", "Phoenix", "Storm", "Thunder",
+    "Cyber", "Neo", "Quantum", "Digital", "Virtual", "Retro",
+    "Wild", "Savage", "Primal", "Abyssal", "Celestial", "Divine",
+    "Infernal", "Eternal", "Infinite", "Final", "Last", "First",
+    "New", "Old", "Lost", "Hidden", "Secret", "Sacred", "Cursed",
+    "Frozen", "Burning", "Electric", "Atomic", "Galactic", "Solar",
+    "Lunar", "Stellar", "Cosmic", "Planetary", "Orbital", "Spatial"
+  ],
+  
+  "colors": [
+    "Red", "Blue", "Green", "Black", "White", "Gray", "Yellow", "Purple",
+    "Orange", "Pink", "Brown", "Cyan", "Magenta", "Silver", "Gold",
+    "Bronze", "Copper", "Emerald", "Ruby", "Sapphire", "Amethyst",
+    "Topaz", "Jade", "Ivory", "Ebony", "Crimson", "Scarlet", "Violet",
+    "Indigo", "Azure", "Teal", "Turquoise", "Maroon", "Navy", "Olive",
+    "Lime", "Coral", "Salmon", "Beige", "Peach", "Lavender", "Plum"
+  ],
+  
+  "locations": [
+    "Forest", "Mountain", "River", "Ocean", "Sea", "Desert", "Island",
+    "Valley", "Canyon", "Cavern", "Cave", "Volcano", "Glacier", "Tundra",
+    "Jungle", "Swamp", "Marsh", "Plains", "Fields", "Meadow", "Garden",
+    "Park", "City", "Town", "Village", "Metropolis", "Capital", "Port",
+    "Harbor", "Bay", "Beach", "Coast", "Shore", "Cliff", "Peak", "Summit",
+    "Base", "Camp", "Fort", "Castle", "Palace", "Temple", "Shrine",
+    "Sanctuary", "Altar", "Tomb", "Crypt", "Dungeon", "Labyrinth", "Maze"
+  ],
+
+  "subtitles": [
+    "Awakening", "Rebirth", "Redemption", "Aftermath", "Revelations",
+    "Origins", "Evolution", "Revolution", "Resurrection", "Genesis",
+    "Chronicles", "Saga", "Odyssey", "Journey", "Crusade", "War",
+    "Legacy", "Heritage", "Tradition", "Future", "Past", "Present",
+    "Eternal", "Infinite", "Forever", "Never", "Always", "Beginning",
+    "Ending", "Destiny", "Fate", "Fortune", "Doom", "Hope", "Dream",
+    "Nightmare", "Legend", "Myth", "Truth", "Lie", "Reality", "Illusion",
+    "Dimension", "Universe", "World", "Planet", "Star", "Moon", "Sun",
+    "Galaxy", "Nebula", "Code", "Protocol", "System", "Matrix"
+  ],
+  
+  "roman_numerals": [
+    "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+    "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"
+  ],
+  
+  "studio_suffixes": [
+    "Games", "Studios", "Interactive", "Entertainment", "Software",
+    "Productions", "Developments", "Creations", "Works", "Labs",
+    "Ware", "Dynamics", "Systems", "Technologies", "Solutions"
+  ],
+  
+  "edition_suffixes": [
+    "HD", "Remastered", "Definitive Edition", "Enhanced Edition",
+    "Gold Edition", "Platinum Edition", "Collector's Edition",
+    "Game of the Year Edition", "Special Edition", "Ultimate Edition"
+  ]
+}
