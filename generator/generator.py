@@ -1,11 +1,10 @@
 import json
 import random
-from typing import List, Dict, Set
-from datetime import datetime
+from typing import List, Dict, Set, Optional
+from datetime import datetime, timedelta
 from pathlib import Path
 import coolname 
 from faker import Faker
-from datetime import datetime, timedelta
 
 
 class DictionaryLoader:
@@ -33,9 +32,10 @@ class DictionaryLoader:
                     'subtitles': ['Awakening', 'Rebirth', 'Origins', 'Legacy'],
                     'roman_numerals': ['II', 'III', 'IV', 'V', 'VI'],
                     'studio_suffixes': ['Games', 'Studios', 'Interactive'],
-                    'edition_suffixes': ['HD', 'Remastered', 'Definitive Edition']
+                    'edition_suffixes': ['HD', 'Remastered', 'Definitive Edition'],
+                    'verbs': ['Rising', 'Falling', 'Awakening', 'Hunting']
                 }
-            else:
+            elif filename == "templates.json":
                 return {
                     'game_titles': [
                         '{adjective} {noun}',
@@ -48,6 +48,8 @@ class DictionaryLoader:
                         '{word1} {suffix}'
                     ]
                 }
+            else:
+                return {}
         
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -129,6 +131,8 @@ class DataGenerator:
         self.user_id_counter = 0
         self.developer_id_counter = 0
         self.game_id_counter = 0
+        
+        self.last_game_dates = {}
     
     def _get_random_word(self, category: str) -> str:
         """Берем случайное слово из категории"""
@@ -237,7 +241,7 @@ class DataGenerator:
             studio_name = f"{studio_name} {random.choice(suffixes)}"
         
         while studio_name in self.generated_studio_names:
-            studio_name += random.randint(1, 9)
+            studio_name += str(random.randint(1, 9))
 
         self.generated_studio_names.add(studio_name)
         return studio_name
@@ -263,7 +267,6 @@ class DataGenerator:
             print("Нет шаблонов для названий игр!")
             return f"Game_{len(self.generated_game_titles) + 1}"
         
-        
         template = random.choice(self.game_templates)
         title = template
         
@@ -273,7 +276,7 @@ class DataGenerator:
             '{mythical}': self._get_random_word('mythical_creatures'),
             '{color}': self._get_random_word('colors'),
             '{prefix}': self._get_random_word('prefixes'),
-            '{verb}': self._get_random_word('verbs'),
+            '{verb}': self._get_random_word('verbs') if 'verbs' in self.words else 'Rising',
             '{location}': self._get_random_word('locations'),
             '{subtitle}': self._get_random_word('subtitles'),
             '{roman_numeral}': self._get_random_word('roman_numerals'),
@@ -292,7 +295,7 @@ class DataGenerator:
                 title = f"{title} - {edition}"
         
         while title in self.generated_game_titles:
-            title += random.randint(1, 9)
+            title += str(random.randint(1, 9))
 
         self.generated_game_titles.add(title)
         return title
@@ -308,29 +311,48 @@ class DataGenerator:
                           'offline', 'vr', 'controller-friendly', 'moddable']
         
         num_tags = random.randint(2, 4)
-        selected_tags = random.sample(base_tags, min(len(base_tags), num_tags-1))
+        selected_tags = random.sample(base_tags, min(len(base_tags), num_tags))
         
-        if additional_tags and random.random() < 0.7:
+        if additional_tags and random.random() < 0.7 and len(selected_tags) < 4:
             selected_tags.append(random.choice(additional_tags))
         
         return genre_main, list(set(selected_tags))
     
-    def _generate_release_date(self) -> str:
-        """Генерация даты релиза игры"""
-        # TODO: Должна вычисляться с учетом даты вызода последней игры от разработчика (думаю одна игра раз в 2 года +- пара месяцев вполне реально)
-        return datetime.now()
+    def _generate_release_date(self, current_date: datetime, developer_id: int = None) -> str:
+        """Генерация даты релиза игры с учетом последней игры разработчика"""
+        now = current_date
+        
+        if developer_id is not None and developer_id in self.last_game_dates:
+            last_release = self.last_game_dates[developer_id]
+            base_interval = timedelta(days=730)
+            variation = timedelta(days=random.randint(-90, 90)) 
+            new_release = last_release + base_interval + variation
+            
+            max_future_date = now + timedelta(days=180)
+            if new_release > max_future_date:
+                new_release = max_future_date
+        else:
+            new_release = now
+        
+        if developer_id is not None:
+            self.last_game_dates[developer_id] = new_release
+        
+        return new_release.strftime('%Y-%m-%d')
     
-    def create_user(self) -> Dict:
+    def create_user(self, current_date: Optional[datetime] = None) -> Dict:
         """
         Создает полные данные пользователя для таблицы users
         """
+        if current_date is None:
+            current_date = datetime.now()
+        
         username = self._generate_username()
         email = self.fake.email()
         while email in self.generated_emails:
             email = self.fake.email()
         self.generated_emails.add(email)
         country_code, region = self._get_random_country_region()
-        registration_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        registration_date = current_date.strftime('%Y-%m-%d %H:%M:%S')
         user_data = {
             'user_id': self.user_id_counter,
             'username': username,
@@ -343,47 +365,61 @@ class DataGenerator:
         self.user_id_counter += 1
         return user_data
     
-    def create_users_batch(self, count: int) -> List[Dict]:
+    def create_users_batch(self, count: int, current_date: Optional[datetime] = None) -> List[Dict]:
         """Создает несколько пользователей"""
+        if current_date is None:
+            current_date = datetime.now()
+            
         users = []
         for _ in range(count):
-            users.append(self.create_user())
+            users.append(self.create_user(current_date))
         return users
     
-    def create_developer(self) -> Dict:
+    def create_developer(self, current_date: Optional[datetime] = None) -> Dict:
         """
         Создает полные данные разработчика для таблицы developers
         """
+        if current_date is None:
+            current_date = datetime.now()
+        
         studio_name = self._generate_studio_name()
         contact_email = self._generate_developer_email(studio_name)
         country_code = self._get_random_country()
-        foundation_year = random.randint(1980, 2026)
+        
         developer_data = {
             'developer_id': self.developer_id_counter,
             'studio_name': studio_name,
             'country_code': country_code,
-            'foundation_year': foundation_year,
+            'foundation_year': current_date.year,
             'total_revenue': 0.00,
             'contact_email': contact_email
         }
         self.developer_id_counter += 1
         return developer_data
     
-    def create_developers_batch(self, count: int) -> List[Dict]:
+    def create_developers_batch(self, count: int, current_date: Optional[datetime] = None) -> List[Dict]:
         """Создает несколько разработчиков"""
+        if current_date is None:
+            current_date = datetime.now()
+            
         developers = []
         for _ in range(count):
-            developers.append(self.create_developer())
+            developers.append(self.create_developer(current_date))
         return developers
     
-    
-    def create_game(self, developer_id: int = -1) -> Dict:
+    def create_game(self, current_date: Optional[datetime] = None, developer_id: int = -1) -> Dict:
         """
         Создает полные данные игры для таблицы games
         Args:
+            current_date: текущая дата в симуляции
             developer_id: ID разработчика (по умолчанию -1)
         """
-        if developer_id == -1: developer_id = random.randint(0, self.developer_id_counter)
+        if current_date is None:
+            current_date = datetime.now()
+            
+        if developer_id == -1: 
+            developer_id = random.randint(0, self.developer_id_counter - 1) if self.developer_id_counter > 0 else 0
+        
         title = self._generate_game_title()
         types, probs = zip(*self.monetization_distribution)
         monetization_type = random.choices(types, weights=probs)[0]
@@ -391,7 +427,7 @@ class DataGenerator:
         genre_main, genre_tags = self._generate_genre()
         ratings, probs = zip(*self.age_rating_distribution)
         age_rating = random.choices(ratings, weights=probs)[0]
-        release_date = self._generate_release_date()
+        release_date = self._generate_release_date(current_date, developer_id)
         
         game_data = {
             'game_id': self.game_id_counter,
@@ -411,20 +447,12 @@ class DataGenerator:
         self.game_id_counter += 1
         return game_data
     
-    def create_games_batch(self, count: int, developer_id: int = -1) -> List[Dict]:
+    def create_games_batch(self, count: int, current_date: Optional[datetime] = None, developer_id: int = -1) -> List[Dict]:
         """Создает несколько игр"""
+        if current_date is None:
+            current_date = datetime.now()
+            
         games = []
         for _ in range(count):
-            games.append(self.create_game(developer_id))
+            games.append(self.create_game(current_date, developer_id))
         return games
-        
-    
-        
-    
-    
-generator = DataGenerator(DictionaryLoader())
-users = generator.create_games_batch(10)
-for user in users:
-    for key, value in user.items():
-        print(f"{key} -- {value}")
-    print()
