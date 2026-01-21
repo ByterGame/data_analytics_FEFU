@@ -6,6 +6,12 @@ from pathlib import Path
 import coolname 
 from faker import Faker
 
+from database.repository import (
+    user_repo, 
+    developer_repo, 
+    game_repo
+)
+
 
 class DictionaryLoader:
     """Загрузчик словарей из текущей директории"""
@@ -17,10 +23,10 @@ class DictionaryLoader:
         
     def _load_words_file(self, filename: str) -> Dict:
         """Загружаем JSON файл из текущей директории"""
-        file_path = Path(filename)
+        file_path = Path(__file__).parent / filename
         
         if not file_path.exists():
-            print(f"Файл '{filename}' не найден в {Path.cwd()}")
+            print(f"Файл '{filename}' не найден в {file_path.parent}")
             if filename == "words_dictionary.json":
                 return {
                     'adjectives': ['Shadow', 'Dark', 'Epic', 'Golden', 'Mystic'],
@@ -65,7 +71,6 @@ class DictionaryLoader:
 
 class DataGenerator:
     """Генератор игровых данных"""
-    
     def __init__(self, dict_loader: DictionaryLoader):
         self.words = dict_loader.words
         self.templates = dict_loader.templates
@@ -128,11 +133,38 @@ class DataGenerator:
         self.generated_emails: Set[str] = set()
         self.generated_game_titles: Set[str] = set()
         self.generated_studio_names: Set[str] = set()
-        self.user_id_counter = 0
-        self.developer_id_counter = 0
-        self.game_id_counter = 0
+        
+        self.user_id_counter = self._get_next_user_id()
+        self.developer_id_counter = self._get_next_developer_id()
+        self.game_id_counter = self._get_next_game_id()
         
         self.last_game_dates = {}
+    
+    def _get_next_user_id(self) -> int:
+        """Получение следующего ID для пользователя из БД"""
+        try:
+            user_ids = user_repo.get_all_user_ids()
+            return max(user_ids) + 1 if user_ids else 0
+        except Exception as e:
+            print(f"Ошибка при получении ID пользователя из БД: {e}")
+            return 0
+    
+    def _get_next_developer_id(self) -> int:
+        """Получение следующего ID для разработчика из БД"""
+        try:
+            dev_ids = developer_repo.get_all_developer_ids()
+            return max(dev_ids) + 1 if dev_ids else 0
+        except Exception as e:
+            print(f"Ошибка при получении ID разработчика из БД: {e}")
+            return 0
+    
+    def _get_next_game_id(self) -> int:
+        """Получение следующего ID для игры из БД"""
+        try:
+            return game_repo.get_game_count()
+        except Exception as e:
+            print(f"Ошибка при получении ID игры из БД: {e}")
+            return 0
     
     def _get_random_word(self, category: str) -> str:
         """Берем случайное слово из категории"""
@@ -157,9 +189,13 @@ class DataGenerator:
             region = random.choice(default_regions.get(country_code, ['Central']))
             return (country_code, region)
         
-        if isinstance(self.countries_region, dict):
+        if isinstance(self.countries_region, dict) and 'countries' in self.countries_region:
+            countries_dict = {}
+            for country_info in self.countries_region['countries']:
+                countries_dict[country_info['code']] = country_info['regions']
+            
             countries, probs = zip(*self.country_distribution)
-            available_countries = [c for c in countries if c in self.countries_region]
+            available_countries = [c for c in countries if c in countries_dict]
             
             if available_countries:
                 available_probs = [p for c, p in self.country_distribution if c in available_countries]
@@ -167,10 +203,11 @@ class DataGenerator:
                 available_probs = [p/total for p in available_probs]
                 
                 country_code = random.choices(available_countries, weights=available_probs)[0]
-                regions = self.countries_region[country_code]
+                regions = countries_dict[country_code]
                 region = random.choice(regions) if regions else "Central"
                 return (country_code, region)
-        
+        print("Проблема с countries_region")
+        print(self.countries_region)
         return ('US', 'California')
     
     def _generate_username(self) -> str:
@@ -417,8 +454,16 @@ class DataGenerator:
         if current_date is None:
             current_date = datetime.now()
             
-        if developer_id == -1: 
-            developer_id = random.randint(0, self.developer_id_counter - 1) if self.developer_id_counter > 0 else 0
+        if developer_id == -1:
+            try:
+                dev_id = developer_repo.get_random_developer_id()
+                if dev_id is not None:
+                    developer_id = dev_id
+                else:
+                    developer_id = self.developer_id_counter - 1 if self.developer_id_counter > 0 else 0
+            except Exception as e:
+                print(f"Ошибка при получении разработчика из БД: {e}")
+                developer_id = 0
         
         title = self._generate_game_title()
         types, probs = zip(*self.monetization_distribution)
@@ -438,7 +483,7 @@ class DataGenerator:
             'current_price': price,
             'monetization_type': monetization_type,
             'genre_main': genre_main,
-            'genre_tags': genre_tags,
+            'genre_tags': json.dumps(genre_tags),
             'age_rating': age_rating,
             'total_purchases': 0,
             'is_active': True
