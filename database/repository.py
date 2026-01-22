@@ -165,6 +165,15 @@ class DeveloperRepository(BaseRepository):
         )
         return result['developer_id'] if result else None
     
+    def get_developer_by_id(self, id: int):
+        """Получение конкретного разработчика по id"""
+        try:
+            result = self.db.fetch_one("SELECT * FROM developers WHERE developer_id = ?", (id,))
+            return dict(result) if result else {}
+        except Exception as e:
+            logger.error(f"Ошибка при получени разработчка с id {id}: {e}")
+            return {}
+    
     def update_developer_revenue(self, developer_id: int, revenue: float) -> bool:
         """Обновление выручки разработчика"""
         try:
@@ -240,7 +249,18 @@ class GameRepository(BaseRepository):
         result = self.db.fetch_one(
             "SELECT * FROM games WHERE is_active = TRUE ORDER BY RANDOM() LIMIT 1"
         )
-        return dict(result) if result else None
+        return dict(result) if result else {}
+    
+    def get_can_purchases_games(self, border_purchases: int) -> List[Dict]:
+        """Получение игр, которые еще не раскупили"""
+        try:
+            result = self.db.fetch_all('''
+            SELECT * FROM games WHERE total_purchases < ?
+            ''', (border_purchases,))
+            return [dict(row) for row in result]
+        except Exception as e:
+            logger.error(f"Ошибка при получении игр get_can_purchases_games: {e}")
+            return []
     
     def update_game_purchases(self, game_id: int, purchases: int = 1) -> bool:
         """Обновление количества покупок игры"""
@@ -255,8 +275,79 @@ class GameRepository(BaseRepository):
             logger.error(f"Ошибка обновления игры {game_id}: {e}")
             return False
 
-
+class TransactionRepository(BaseRepository):
+    """Репозиторий для работы с транзакциями"""
+    
+    def create_transaction(self, transaction_data: Dict) -> bool:
+        """Создание новой транзакции"""
+        try:
+            self.db.execute_query('''
+                INSERT INTO transactions 
+                (user_id, game_id, transaction_date, amount, developer_revenue, platform_commission)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                transaction_data['user_id'],
+                transaction_data['game_id'],
+                transaction_data['transaction_date'],
+                transaction_data['amount'],
+                transaction_data['developer_revenue'],
+                transaction_data['platform_commission']
+            ))
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка создания транзакции: {e}")
+            return False
+        
+    def get_total_platform_revenue(self) -> float:
+        """Получение общей выручки платформы"""
+        result = self.db.fetch_one('''
+            SELECT COALESCE(SUM(platform_commission), 0) as total_revenue 
+            FROM transactions
+        ''')
+        return float(result['total_revenue']) if result else 0.0
+    
+    def get_daily_platform_revenue(self, date: datetime) -> float:
+        """Получение выручки платформы за день"""
+        result = self.db.fetch_one('''
+            SELECT COALESCE(SUM(platform_commission), 0) as daily_revenue 
+            FROM transactions
+            WHERE DATE(transaction_date) = DATE(?)
+        ''', (date,))
+        return float(result['daily_revenue']) if result else 0.0
+        
+class UserLibraryRepository(BaseRepository):
+    """Репозиторий для работы с библиотекой игр пользователей"""
+    def add_game_to_library(self, user_id: int, game_id: int, purchase_date: datetime) -> bool:
+        """Добавление игры в библиотеку пользователя"""
+        try:
+            self.db.execute_query('''
+                INSERT INTO user_library (user_id, game_id, purchase_date)
+                VALUES (?, ?, ?)
+            ''', (user_id, game_id, purchase_date))
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка добавления игры {game_id} в библиотеку пользователя {user_id}: {e}")
+            return False
+        
+    def get_users_without_game(self, game_id: int) -> List[int]:
+        """Получение пользователей, у которых нет указанной игры"""
+        try:
+            query = '''
+                SELECT u.user_id FROM users u
+                WHERE u.user_id NOT IN (
+                    SELECT ul.user_id FROM user_library ul
+                    WHERE ul.game_id = ?
+                )
+                ORDER BY u.user_id
+            '''
+            results = self.db.fetch_all(query, (game_id,))
+            return [row['user_id'] for row in results]
+        except Exception as e:
+            logger.error(f"Ошибка получения пользователей без игры {game_id}: {e}")
+            return []
 
 user_repo = UserRepository()
 developer_repo = DeveloperRepository()
 game_repo = GameRepository()
+transaction_repo = TransactionRepository()
+user_lib_repo = UserLibraryRepository()

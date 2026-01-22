@@ -375,6 +375,11 @@ class ContinuousGenerator:
         
         return []
     
+    def add_transaction(self):
+        wanna_sell = self.active_users_cnt * 0.03 # Мне уже лень что-то выдумывать, поэтому пусть просто каждый день 3% активных юзеров чето покупают
+        sold_cnt = self.generator.add_transaction(wanna_sell, self.time_simulator.get_simulated_datetime())
+        print(f"[День {self.time_simulator.get_current_sim_day()}] продано игр {sold_cnt}")
+    
     def print_statistics(self):
         """Вывод текущей статистики"""
         total_users = user_repo.get_user_count()
@@ -431,6 +436,12 @@ class ContinuousGenerator:
             self.delete_old_users,
             IntervalTrigger(minutes=30),
             id="delete_old_users"
+        )
+
+        scheduler.add_job(
+            self.add_transaction,
+            IntervalTrigger(minutes=1),
+            id="add_transaction"
         )
         
         scheduler.add_job(

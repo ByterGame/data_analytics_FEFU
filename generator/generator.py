@@ -9,7 +9,9 @@ from faker import Faker
 from database.repository import (
     user_repo, 
     developer_repo, 
-    game_repo
+    game_repo,
+    transaction_repo,
+    user_lib_repo
 )
 
 
@@ -501,3 +503,71 @@ class DataGenerator:
         for _ in range(count):
             games.append(self.create_game(current_date, developer_id))
         return games
+    
+    def add_transaction(self, wanna_sell: int, trans_date: datetime) -> int:
+        try:
+            target_games_count = max(1, int(game_repo.get_game_count() * random.uniform(0.3, 0.7))) # Сколько различных игр продаем
+            user_repo.db.connection.execute("BEGIN TRANSACTION")
+            sold = 0
+            while wanna_sell > 0:
+                wanna_sell_per_game = max(1, int(wanna_sell // target_games_count))
+                games_will_sell = game_repo.get_can_purchases_games(user_repo.get_user_count() - wanna_sell_per_game)
+                if games_will_sell:
+                    if len(games_will_sell) > target_games_count:
+                        games_will_sell = random.sample(games_will_sell, target_games_count)
+                    for game in games_will_sell:
+                        if wanna_sell <= 0:
+                            break
+                        user_who_buy = user_lib_repo.get_users_without_game(game["game_id"])
+                        if not user_who_buy: continue
+                        can_seil = min(wanna_sell_per_game, len(user_who_buy))
+
+                        user_who_buy = random.sample(user_who_buy, can_seil)
+                        game_sold = 0
+
+                        dev_revenue = developer_repo.get_developer_by_id(game["developer_id"])["total_revenue"]
+                        comission_persent = max(10, min(30, int(100_000_000/max(1, dev_revenue))))
+                        add_to_dev_revenue = 0
+                        wanna_sell -= can_seil
+                        for user_id in user_who_buy:
+                            try: 
+                                user_lib_repo.add_game_to_library(user_id, game["game_id"], trans_date)
+                                transaction = {
+                                        'user_id': user_id,
+                                        'game_id': game["game_id"],
+                                        'transaction_date': trans_date,
+                                        'amount': game["base_price"],
+                                        'developer_revenue': game["base_price"] * (100 - comission_persent) / 100,
+                                        'platform_commission': game["base_price"] * comission_persent / 100
+                                    }
+                                transaction_repo.create_transaction(transaction)
+                                if game["base_price"]:
+                                    add_to_dev_revenue += int(game["base_price"] * (100 - comission_persent) / 100)
+                                    user_repo.update_user_spent(user_id, game["base_price"], trans_date)
+
+                                sold += 1
+                                game_sold += 1
+                            except Exception as e:
+                                print(f"Ошибка при обработке покупки user={user_id}, game={game['game_id']}: {e}")
+                                continue
+                        if add_to_dev_revenue:
+                            try:
+                                developer_repo.update_developer_revenue(game["developer_id"], add_to_dev_revenue)
+                            except Exception as e:
+                                print(f"Ошибка обновления прибыли разработчика {e}")
+                        try:
+                            game_repo.update_game_purchases(game["game_id"], game_sold)
+                        except Exception as e:
+                            print(f"Ошибка обновления продаж игры {e}")
+                else:
+                    wanna_sell = int(wanna_sell // 10)
+                    wanna_sell_per_game = max(1, int(wanna_sell // target_games_count))
+            user_repo.db.connection.commit()
+            return sold
+        except Exception as e:
+            try:
+                user_repo.db.connection.rollback()
+            except:
+                pass
+            print(f"Критическая ошибка в add_transaction: {e}")
+            return 0

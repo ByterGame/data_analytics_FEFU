@@ -67,6 +67,29 @@ class DatabaseManager:
             FOREIGN KEY (developer_id) REFERENCES developers (developer_id) ON DELETE CASCADE
         )
         ''')
+
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_library (
+            user_game_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER REFERENCES users(user_id),
+            game_id INTEGER REFERENCES games(game_id),
+            purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
+        # Упростил таблицы в сравнении с изначальным планом в силу приближающегося дедлайна
+        # Валюта всегда доллар, транзакции - только покупки
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS transactions (
+            transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER REFERENCES users(user_id),
+            game_id INTEGER REFERENCES games(game_id),
+            transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            amount DECIMAL(10,2),
+            developer_revenue DECIMAL(10,2),
+            platform_commission DECIMAL(10,2)
+        )
+        ''')
         
         
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_country ON users(country_code)')
