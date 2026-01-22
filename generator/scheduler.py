@@ -49,7 +49,7 @@ class MarketSimulator:
 
 
 class TimeSimulator:
-    """Симулятор времени: 5 реальных секунд = 1 симулированный день"""
+    """Симулятор времени: 10 реальных секунд = 1 симулированный день"""
     
     def __init__(self, start_date: str = None):
         if start_date is None:
@@ -60,7 +60,7 @@ class TimeSimulator:
     def get_current_sim_day(self) -> int:
         """Возвращает текущий день симуляции"""
         real_elapsed = datetime.now() - self.real_start_time
-        real_minutes = real_elapsed.total_seconds() / 5
+        real_minutes = real_elapsed.total_seconds() / 60
         return int(real_minutes)
     
     def get_simulated_date(self) -> datetime:
@@ -193,6 +193,7 @@ class ContinuousGenerator:
         self.economy = EconomicSimulator()
         self.generator = DataGenerator(DictionaryLoader())
 
+        self.active_users_cnt = 0
         self.new_devs = 0
         self.new_users = 0
         self.new_games = 0
@@ -246,14 +247,14 @@ class ContinuousGenerator:
         
         print(f"Создано {total_games_created} начальных игр")
     
-    def _calculate_daily_growth(self):
+    def calculate_daily_growth(self):
         """Расчет ежедневного роста на основе текущего состояния"""
         current_users = user_repo.get_user_count()
         current_games = game_repo.get_game_count()
         current_devs = developer_repo.get_developer_count()
         
-        # Оценка активных пользователей (примерно 45-70% от общего числа)
-        base_activity = 0.45
+        # Оценка активных пользователей
+        base_activity = random.uniform(0.1, 0.25)
         seasonal_mult = MarketSimulator.get_seasonal_multiplier(self.time_simulator.get_simulated_datetime().month)
         weekday_mult = MarketSimulator.get_weekday_multiplier(self.time_simulator.get_simulated_datetime().weekday())
         random_variation = random.uniform(0.9, 1.1)
@@ -261,18 +262,18 @@ class ContinuousGenerator:
         activity_rate = base_activity * seasonal_mult * weekday_mult * random_variation
         activity_rate = min(max(activity_rate, 0.25), 0.8)
         
-        active_users = int(current_users * activity_rate)
+        self.active_users_cnt = int(current_users * activity_rate)
         
         sim_date = self.time_simulator.get_simulated_date()
         month = sim_date.month
         
-        user_growth = self.economy.calculate_daily_user_growth(
+        self.new_users += self.economy.calculate_daily_user_growth(
             current_users,
             current_games,
             month
         )
         
-        dev_growth = self.economy.calculate_daily_dev_growth(
+        self.new_devs += self.economy.calculate_daily_dev_growth(
             current_devs,
             current_users,
         )
@@ -280,15 +281,12 @@ class ContinuousGenerator:
         game_growth = self.economy.calculate_daily_game_growth(
             current_devs,
             current_games,
-            active_users
+            self.active_users_cnt
         )
+        self.new_games += min(game_growth, developer_repo.get_developer_count() / 175)
         
-        return user_growth, dev_growth, game_growth, active_users
-    
     def generate_users_batch(self):
         """Генерация пользователей"""
-        user_growth, _, _, _ = self._calculate_daily_growth()
-        self.new_users += user_growth
         if self.new_users >= 5:
             sim_date = self.time_simulator.get_simulated_date()
             
@@ -303,11 +301,45 @@ class ContinuousGenerator:
                 return users
         
         return []
+
+    def update_active_users(self):
+        try:
+            all_user_ids = user_repo.get_all_user_ids()
+            if not all_user_ids:
+                print("Нет пользователей для обновления активности")
+                return
+            if self.active_users_cnt > len(all_user_ids):
+                active_ids = all_user_ids
+            else:
+                active_ids = random.sample(all_user_ids, self.active_users_cnt)
+            
+            current_time = self.time_simulator.get_simulated_datetime()
+            success_count = 0
+            
+            for user_id in active_ids:
+                try:
+                    if user_repo.update_user_active(user_id, current_time):
+                        success_count += 1
+                except Exception as e:
+                    print(f"Ошибка обновления активности для пользователя {user_id}: {e}")
+                    continue
+            
+            print(f"Обновлена активность для {success_count}/{len(active_ids)} пользователей")
+            
+        except Exception as e:
+            print(f"Ошибка в update_active_users: {e}")
+
+    def delete_old_users(self):
+        try:
+            border_date = self.time_simulator.get_simulated_datetime() - timedelta(days=730) # Удаляю тех, кто неактивен 2 и более года
+            delete_cnt = user_repo.delete_old_users(border_date)
+            print(f"Удалено неактивных пользователей {delete_cnt}")
+        except Exception as e:
+            print(f"Ошибка при удалении старых пользователей {e}")
+
     
     def generate_developers_batch(self):
         """Генерация разработчиков"""
-        _, dev_growth, _, _ = self._calculate_daily_growth()
-        self.new_devs += dev_growth
         if self.new_devs >= 1:
             sim_date = self.time_simulator.get_simulated_date()
 
@@ -325,8 +357,6 @@ class ContinuousGenerator:
     
     def generate_games_batch(self):
         """Генерация игр"""
-        _, _, game_growth, _ = self._calculate_daily_growth()
-        self.new_games += min(game_growth, developer_repo.get_developer_count() / 175)
         if self.new_games >= 1:
             sim_date = self.time_simulator.get_simulated_date()
             
@@ -351,21 +381,13 @@ class ContinuousGenerator:
         total_devs = developer_repo.get_developer_count()
         total_games = game_repo.get_game_count()
         
-        base_activity = 0.45
-        seasonal_mult = MarketSimulator.get_seasonal_multiplier(datetime.now().month)
-        weekday_mult = MarketSimulator.get_weekday_multiplier(datetime.now().weekday())
-        activity_rate = base_activity * seasonal_mult * weekday_mult
-        active_users = int(total_users * activity_rate)
-        
-        peak_concurrent = int(active_users * 1.2)
-        
-        sim_date = self.time_simulator.get_simulated_date()
+        peak_concurrent = int(self.active_users_cnt * 1.2)
         
         print("\n" + "="*50)
         print(f"День симуляции: {self.time_simulator.get_current_sim_day()}")
         print("-"*50)
         print(f"Пользователей: {total_users:,}")
-        print(f"Активных пользователей: {active_users:,} ({activity_rate*100:.1f}%)")
+        print(f"Активных пользователей: {self.active_users_cnt:,} ({self.active_users_cnt*100:.1f}%)")
         print(f"Разработчиков: {total_devs:,}")
         print(f"Игр: {total_games:,}")
         print(f"Пиковый онлайн: {peak_concurrent:,}")
@@ -374,28 +396,46 @@ class ContinuousGenerator:
     def run_scheduler(self):
         """Запуск планировщика задач"""
         scheduler = BackgroundScheduler()
-        
+        self.calculate_daily_growth()
+        scheduler.add_job(
+            self.calculate_daily_growth,
+            IntervalTrigger(minutes=1),
+            id="calculate_daily_growth"
+        )
+
         scheduler.add_job(
             self.generate_users_batch,
-            IntervalTrigger(seconds=5),
+            IntervalTrigger(minutes=1),
             id='generate_users'
         )
         
         scheduler.add_job(
             self.generate_developers_batch,
-            IntervalTrigger(seconds=5),
+            IntervalTrigger(minutes=1),
             id='generate_developers'
         )
         
         scheduler.add_job(
             self.generate_games_batch,
-            IntervalTrigger(seconds=5),
+            IntervalTrigger(minutes=1),
             id='generate_games'
+        )
+
+        scheduler.add_job(
+            self.update_active_users,
+            IntervalTrigger(minutes=1),
+            id="update_active_users"
+        )
+
+        scheduler.add_job(
+            self.delete_old_users,
+            IntervalTrigger(minutes=30),
+            id="delete_old_users"
         )
         
         scheduler.add_job(
             self.print_statistics,
-            IntervalTrigger(minutes=1),
+            IntervalTrigger(minutes=5),
             id='print_stats'
         )
         

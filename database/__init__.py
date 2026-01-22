@@ -121,5 +121,3 @@ class DatabaseManager:
 
 
 db_manager = DatabaseManager()
-
-__all__ = ['DatabaseManager', 'db_manager']

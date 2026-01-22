@@ -2,6 +2,7 @@ import json
 from typing import List, Dict, Optional
 from datetime import datetime
 import logging
+import threading
 
 from . import db_manager
 
@@ -12,6 +13,8 @@ class BaseRepository:
     """Базовый класс репозитория"""
     def __init__(self):
         self.db = db_manager
+        self.db_lock = threading.Lock()
+
     
     def _format_datetime(self, dt) -> str:
         """Форматирование datetime в строку"""
@@ -27,14 +30,15 @@ class UserRepository(BaseRepository):
         try:
             self.db.execute_query('''
                 INSERT INTO users 
-                (user_id, username, email, country_code, region, registration_date, total_spent)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (user_id, username, email, country_code, region, last_active, registration_date, total_spent)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 user_data['user_id'],
                 user_data['username'],
                 user_data['email'],
                 user_data['country_code'],
                 user_data['region'],
+                self._format_datetime(user_data['registration_date']),
                 self._format_datetime(user_data['registration_date']),
                 user_data['total_spent']
             ))
@@ -70,18 +74,46 @@ class UserRepository(BaseRepository):
         )
         return dict(result) if result else None
     
-    def update_user_spent(self, user_id: int, amount: float) -> bool:
+    def update_user_spent(self, user_id: int, amount: float, last_active: datetime) -> bool:
         """Обновление суммы потраченных средств пользователем"""
-        try:
-            self.db.execute_query('''
-                UPDATE users 
-                SET total_spent = total_spent + ?, last_active = CURRENT_TIMESTAMP
-                WHERE user_id = ?
-            ''', (amount, user_id))
-            return True
-        except Exception as e:
-            logger.error(f"Ошибка обновления пользователя {user_id}: {e}")
-            return False
+        with self.db_lock:
+            try:
+                self.db.execute_query('''
+                    UPDATE users 
+                    SET total_spent = total_spent + ?, last_active = ?
+                    WHERE user_id = ?
+                ''', (amount, last_active, user_id))
+                return True
+            except Exception as e:
+                logger.error(f"Ошибка обновления пользователя {user_id}: {e}")
+                return False
+    
+    def update_user_active(self, user_id: int, last_active: datetime) -> bool:
+        """Обновление последнего времени активности у юзеров"""
+        with self.db_lock:
+            try:
+                self.db.execute_query('''
+                    UPDATE users
+                    SET last_active = ?
+                    WHERE user_id = ?
+                ''', (last_active, user_id))
+                return True
+            except Exception as e:
+                logger.error(f"Ошибка обновления активности пользователя {e}")
+                return False
+    
+    def delete_old_users(self, border_date: datetime) -> int:
+        """Удаление пользователей, которые в последний раз были активны до border_date"""
+        with self.db_lock:
+            try:
+                cursor = self.db.execute_query('''
+                    DELETE FROM users
+                    WHERE last_active < ?
+                ''', (border_date,))
+                return cursor.rowcount
+            except:
+                logger.error(f"Ошибка удаления неактивных пользователей")
+                return 0
 
 
 class DeveloperRepository(BaseRepository):
@@ -228,14 +260,3 @@ class GameRepository(BaseRepository):
 user_repo = UserRepository()
 developer_repo = DeveloperRepository()
 game_repo = GameRepository()
-
-__all__ = [
-    'UserRepository',
-    'DeveloperRepository', 
-    'GameRepository',
-    'MarketStateRepository',
-    'StatsRepository',
-    'user_repo',
-    'developer_repo',
-    'game_repo',
-]
