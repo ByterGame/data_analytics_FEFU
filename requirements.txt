@@ -1,0 +1,5 @@
+psycopg2-binary==2.9.9
+apscheduler==3.10.4
+Faker==24.8.0
+coolname==2.2.0
+python-dotenv==1.0.0

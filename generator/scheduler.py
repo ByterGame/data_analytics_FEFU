@@ -254,7 +254,7 @@ class ContinuousGenerator:
         current_devs = developer_repo.get_developer_count()
         
         # Оценка активных пользователей
-        base_activity = random.uniform(0.1, 0.25)
+        base_activity = random.uniform(0.25, 0.4)
         seasonal_mult = MarketSimulator.get_seasonal_multiplier(self.time_simulator.get_simulated_datetime().month)
         weekday_mult = MarketSimulator.get_weekday_multiplier(self.time_simulator.get_simulated_datetime().weekday())
         random_variation = random.uniform(0.9, 1.1)
@@ -392,7 +392,7 @@ class ContinuousGenerator:
         print(f"День симуляции: {self.time_simulator.get_current_sim_day()}")
         print("-"*50)
         print(f"Пользователей: {total_users:,}")
-        print(f"Активных пользователей: {self.active_users_cnt:,} ({self.active_users_cnt*100:.1f}%)")
+        print(f"Активных пользователей: {self.active_users_cnt:,}")
         print(f"Разработчиков: {total_devs:,}")
         print(f"Игр: {total_games:,}")
         print(f"Пиковый онлайн: {peak_concurrent:,}")

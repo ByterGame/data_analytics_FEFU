@@ -507,7 +507,7 @@ class DataGenerator:
     def add_transaction(self, wanna_sell: int, trans_date: datetime) -> int:
         try:
             target_games_count = max(1, int(game_repo.get_game_count() * random.uniform(0.3, 0.7))) # Сколько различных игр продаем
-            user_repo.db.connection.execute("BEGIN TRANSACTION")
+            cursor, conn = user_repo.db.execute_with_connection("BEGIN", ())
             sold = 0
             while wanna_sell > 0:
                 wanna_sell_per_game = max(1, int(wanna_sell // target_games_count))
@@ -562,11 +562,11 @@ class DataGenerator:
                 else:
                     wanna_sell = int(wanna_sell // 10)
                     wanna_sell_per_game = max(1, int(wanna_sell // target_games_count))
-            user_repo.db.connection.commit()
+            user_repo.db.commit_connection(conn)
             return sold
         except Exception as e:
             try:
-                user_repo.db.connection.rollback()
+                user_repo.db.rollback_connection(conn)
             except:
                 pass
             print(f"Критическая ошибка в add_transaction: {e}")
