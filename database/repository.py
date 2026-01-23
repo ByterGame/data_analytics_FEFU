@@ -29,7 +29,7 @@ class UserRepository(BaseRepository):
         """Добавление пользователя в БД"""
         try:
             query = '''
-                INSERT INTO users 
+                INSERT INTO clients 
                 (user_id, username, email, country_code, region, last_active, registration_date, total_spent)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             '''
@@ -54,7 +54,7 @@ class UserRepository(BaseRepository):
             return 0
             
         query = '''
-            INSERT INTO users 
+            INSERT INTO clients 
             (user_id, username, email, country_code, region, last_active, registration_date, total_spent)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
@@ -94,18 +94,18 @@ class UserRepository(BaseRepository):
     
     def get_user_count(self) -> int:
         """Получение количества пользователей"""
-        result = self.db.fetch_one("SELECT COUNT(*) as count FROM users")
+        result = self.db.fetch_one("SELECT COUNT(*) as count FROM clients")
         return result['count'] if result else 0
     
     def get_all_user_ids(self) -> List[int]:
         """Получение всех ID пользователей"""
-        results = self.db.fetch_all("SELECT user_id FROM users ORDER BY user_id")
+        results = self.db.fetch_all("SELECT user_id FROM clients ORDER BY user_id")
         return [row['user_id'] for row in results]
     
     def get_user_by_id(self, user_id: int) -> Optional[Dict]:
         """Получение пользователя по ID"""
         result = self.db.fetch_one(
-            "SELECT * FROM users WHERE user_id = %s",
+            "SELECT * FROM clients WHERE user_id = %s",
             (user_id,)
         )
         return result if result else None
@@ -115,7 +115,7 @@ class UserRepository(BaseRepository):
         with self.db_lock:
             try:
                 self.db.execute_query('''
-                    UPDATE users 
+                    UPDATE clients 
                     SET total_spent = total_spent + %s, last_active = %s
                     WHERE user_id = %s
                 ''', (amount, last_active, user_id))
@@ -129,7 +129,7 @@ class UserRepository(BaseRepository):
         with self.db_lock:
             try:
                 self.db.execute_query('''
-                    UPDATE users
+                    UPDATE clients
                     SET last_active = %s
                     WHERE user_id = %s
                 ''', (last_active, user_id))
@@ -143,7 +143,7 @@ class UserRepository(BaseRepository):
         with self.db_lock:
             try:
                 cursor = self.db.execute_query('''
-                    DELETE FROM users
+                    DELETE FROM clients
                     WHERE last_active < %s
                 ''', (border_date,))
                 return cursor.rowcount if cursor else 0
@@ -527,7 +527,7 @@ class UserLibraryRepository(BaseRepository):
         """Получение пользователей, у которых нет указанной игры"""
         try:
             query = '''
-                SELECT u.user_id FROM users u
+                SELECT u.user_id FROM clients u
                 WHERE u.user_id NOT IN (
                     SELECT ul.user_id FROM user_library ul
                     WHERE ul.game_id = %s

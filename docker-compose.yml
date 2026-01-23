@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -7,15 +9,74 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d game_platform"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 15
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  redash-setup:
+    image: redash/redash:latest
+    command: create_db
+    environment:
+      REDASH_DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/game_platform"
+      REDASH_REDIS_URL: "redis://redis:6379/0"
+      REDASH_COOKIE_SECRET: "secret"
+      REDASH_SECRET_KEY: "secret"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: "no"
+
+  redash:
+    image: redash/redash:latest
+    ports:
+      - "5000:5000"
+    environment:
+      REDASH_DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/game_platform"
+      REDASH_REDIS_URL: "redis://redis:6379/0"
+      REDASH_COOKIE_SECRET: "secret"
+      REDASH_SECRET_KEY: "secret"
+      PYTHONUNBUFFERED: "0"
+      REDASH_LOG_LEVEL: "INFO"
+      REDASH_RATELIMIT_ENABLED: "false"
+      REDASH_MAIL_DEFAULT_SENDER: "admin@localhost"
+      REDASH_MAIL_SERVER: "localhost"
+      REDASH_HOST: "http://localhost:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  redash-worker:
+    image: redash/redash:latest
+    command: worker
+    environment:
+      REDASH_DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/game_platform"
+      REDASH_REDIS_URL: "redis://redis:6379/0"
+      REDASH_COOKIE_SECRET: "secret"
+      REDASH_SECRET_KEY: "secret"
+    depends_on:
+      redash:
+        condition: service_healthy
+        
   app:
     build: .
     depends_on:
@@ -28,7 +89,15 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       PYTHONPATH: /app
-    command: python run.py
+    command: >
+      sh -c '
+      echo "Ожидание PostgreSQL..." &&
+      until nc -z postgres 5432; do
+        sleep 1
+      done &&
+      echo "PostgreSQL готов, запуск приложения..." &&
+      python run.py
+      '
     stdin_open: true
     tty: true
 

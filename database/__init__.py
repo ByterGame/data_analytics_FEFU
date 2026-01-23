@@ -42,7 +42,7 @@ class DatabaseManager:
         
         try:
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS users (
+                CREATE TABLE IF NOT EXISTS clients (
                     user_id INTEGER PRIMARY KEY,
                     username VARCHAR(100) UNIQUE NOT NULL,
                     email VARCHAR(255) UNIQUE NOT NULL,
@@ -88,7 +88,7 @@ class DatabaseManager:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS user_library (
                     user_game_id SERIAL PRIMARY KEY,
-                    user_id INTEGER REFERENCES users(user_id),
+                    user_id INTEGER REFERENCES clients(user_id),
                     game_id INTEGER REFERENCES games(game_id),
                     purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(user_id, game_id)
@@ -98,7 +98,7 @@ class DatabaseManager:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS transactions (
                     transaction_id SERIAL PRIMARY KEY,
-                    user_id INTEGER REFERENCES users(user_id),
+                    user_id INTEGER REFERENCES clients(user_id),
                     game_id INTEGER REFERENCES games(game_id),
                     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     amount DECIMAL(10,2),
@@ -107,7 +107,7 @@ class DatabaseManager:
                 )
             ''')
             
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_country ON users(country_code)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_users_country ON clients(country_code)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_games_developer ON games(developer_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_games_genre ON games(genre_main)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_user_library_user ON user_library(user_id)')

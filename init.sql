@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS clients (
     user_id INTEGER PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS games (
 
 CREATE TABLE IF NOT EXISTS user_library (
     user_game_id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(user_id),
+    user_id INTEGER REFERENCES clients(user_id),
     game_id INTEGER REFERENCES games(game_id),
     purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, game_id)
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS user_library (
 
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(user_id),
+    user_id INTEGER REFERENCES clients(user_id),
     game_id INTEGER REFERENCES games(game_id),
     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     amount DECIMAL(10,2),
@@ -54,13 +54,13 @@ CREATE TABLE IF NOT EXISTS transactions (
     platform_commission DECIMAL(10,2)
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_country ON users(country_code);
+CREATE INDEX IF NOT EXISTS idx_users_country ON clients(country_code);
 CREATE INDEX IF NOT EXISTS idx_games_developer ON games(developer_id);
 CREATE INDEX IF NOT EXISTS idx_games_genre ON games(genre_main);
 CREATE INDEX IF NOT EXISTS idx_user_library_user ON user_library(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_library_game ON user_library(game_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
 
-CREATE INDEX IF NOT EXISTS idx_users_id ON users(user_id);
+CREATE INDEX IF NOT EXISTS idx_users_id ON clients(user_id);
 CREATE INDEX IF NOT EXISTS idx_developers_id ON developers(developer_id);
 CREATE INDEX IF NOT EXISTS idx_games_id ON games(game_id);
